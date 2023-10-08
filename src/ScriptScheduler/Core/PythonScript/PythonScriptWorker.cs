@@ -1,12 +1,15 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ScriptScheduler.Core.Base;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonScriptWorker : BackgroundService
+public class PythonScriptWorker : ScriptBaseBackgroundService
 {
     private readonly Serilog.ILogger _logger;
     private readonly PythonScriptSetup _pythonScriptSetup;
@@ -35,9 +38,12 @@ public class PythonScriptWorker : BackgroundService
         await _pythonScriptSetup.InitializeAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
+            this.ChangeFileDoneToIng(_scriptOption.ScriptPath, "python-script");
             _logger.Information("Worker running at: {time}", DateTimeOffset.Now);
             await _pythonScriptExecutor.ExecuteAsync(stoppingToken);
             await Task.Delay(1000 * _scriptOption.Interval, stoppingToken);
         }
     }
+    
+
 }

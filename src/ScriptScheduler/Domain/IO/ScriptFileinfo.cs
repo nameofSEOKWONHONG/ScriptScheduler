@@ -10,4 +10,5 @@ public class ScriptFileInfo
     public string RoleName { get; set; }
     public string Extension { get; set; }
     public string FullPath { get; set; }
+    public bool IsExecuted { get; set; }
 }

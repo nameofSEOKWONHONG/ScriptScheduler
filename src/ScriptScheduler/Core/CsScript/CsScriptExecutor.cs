@@ -42,7 +42,7 @@ public class CsScriptExecutor : IScriptExecutor
         }, async (dir, token) =>
         {
             var files = Directory.GetFiles(dir, "*.csx", SearchOption.AllDirectories);
-            foreach (var file in files)
+            foreach (var file in files.Where(m => !m.Contains(".done")))
             {
                 await ExecuteCoreAsync(file, cancellationToken);
             }
@@ -60,15 +60,14 @@ public class CsScriptExecutor : IScriptExecutor
 
         try
         {
-            ICsScriptRunner<String, String> runner = CSScript.Evaluator
+            ICsScriptRunner runner = CSScript.Evaluator
                 .ReferenceAssembliesFromCode(code)
                 .ReferenceAssembly(Assembly.GetExecutingAssembly())
                 .ReferenceAssembly(Assembly.GetExecutingAssembly().Location)
                 .ReferenceDomainAssemblies()
-                .LoadCode<ICsScriptRunner<String, String>>(code);
+                .LoadCode<ICsScriptRunner>(code);
             await runner.OnProducerAsync();
             await runner.OnConsumerAsync();
-            _logger.Information(runner.Result);
         }
         catch (Exception e)
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,12 +45,14 @@ public class PythonScriptExecutor : IScriptExecutor
         }, async (dir, token) =>
         {
             var files = Directory.GetFiles(dir, "*.py", SearchOption.AllDirectories);
-            foreach (var file in files)
+            foreach (var file in files.Where(m => !m.Contains(".done")))
             {
                 await ExecuteCoreAsync(file, cancellationToken);
             }
         });
     }
+
+    
 
     private readonly Dictionary<ENUM_REPEAT_TYPE, Func<ScriptFileInfo, CancellationToken, Task<Tuple<string, string>>>> _states 
         = new()
@@ -60,6 +63,8 @@ public class PythonScriptExecutor : IScriptExecutor
                 var stdOutBuffer = new StringBuilder();
                 var stdErrBuffer = new StringBuilder();
 
+                if (fileInfo.IsExecuted) return new Tuple<string, string>(string.Empty, string.Empty);
+                
                 if (fileInfo.RepeatType == ENUM_REPEAT_TYPE.DAILY)
                 {
                     if (fileInfo.ExecuteTime >= DateTime.Now.TimeOfDay)
@@ -69,6 +74,9 @@ public class PythonScriptExecutor : IScriptExecutor
                             .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
                             .ExecuteAsync(cancellationToken);
+
+                        File.Move(fileInfo.FullPath, $"{fileInfo.FullPath}.done");
+                        File.Delete(fileInfo.FullPath);
                     }
                 }
 
@@ -86,6 +94,23 @@ public class PythonScriptExecutor : IScriptExecutor
                     .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
                     .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
                     .ExecuteAsync(cancellationToken);
+                
+                return new(stdOutBuffer.ToString(), stdErrBuffer.ToString());
+            }
+        },
+        {
+            ENUM_REPEAT_TYPE.ONCE, async (fileInfo, cancellationToken) =>
+            {
+                var stdOutBuffer = new StringBuilder();
+                var stdErrBuffer = new StringBuilder();
+
+                await Cli.Wrap("python")
+                    .WithArguments(fileInfo.FullPath)
+                    .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer))
+                    .WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+                    .ExecuteAsync(cancellationToken);
+                
+                File.Delete(fileInfo.FullPath);
                 
                 return new(stdOutBuffer.ToString(), stdErrBuffer.ToString());
             }

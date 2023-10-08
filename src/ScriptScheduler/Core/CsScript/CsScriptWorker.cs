@@ -3,10 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using ScriptScheduler.Core.Base;
 
 namespace ScriptScheduler.Core.CsScript;
 
-public class CsScriptWorker : BackgroundService
+public class CsScriptWorker : ScriptBaseBackgroundService
 {
     private readonly Serilog.ILogger _logger;
     private readonly CsScriptSetup _csScriptSetup;
@@ -37,6 +38,7 @@ public class CsScriptWorker : BackgroundService
         await _csScriptSetup.InitializeAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
+            this.ChangeFileDoneToIng(_option.ScriptPath, "cs-script");
             _logger.Information("Worker running at: {time}", DateTimeOffset.Now);
             await _csScriptExecutor.ExecuteAsync(stoppingToken);
             await Task.Delay(1000 * _option.Interval, stoppingToken);

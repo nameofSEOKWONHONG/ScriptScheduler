@@ -17,18 +17,19 @@ using ScriptScheduler.Core.CsScript;
 using System.Threading.Tasks;
 using System.Net.Http;
 
-public class HttpGetScript : CsScriptRunnerBase<string, string>
+public class HttpGetScript : CsScriptRunnerBase
 {
+    private string _result;
     public override async Task OnProducerAsync()
     {    
         using var client = new HttpClient();
         var res = await client.GetAsync("https://google.com");
-        this.Request = await res.Content.ReadAsStringAsync();
+        _result = await res.Content.ReadAsStringAsync();
     }
 
     public override Task OnConsumerAsync()
     {
-        Console.WriteLine(this.Result);
+        Console.WriteLine(_result);
         return Task.CompletedTask;
     }
 }
