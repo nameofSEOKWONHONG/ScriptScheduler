@@ -1,4 +1,5 @@
-﻿using eXtensionSharp;
+﻿using System.Threading.Tasks;
+using eXtensionSharp;
 
 namespace ScriptScheduler.Core.CsScript;
 

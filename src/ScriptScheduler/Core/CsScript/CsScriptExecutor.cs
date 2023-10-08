@@ -1,11 +1,17 @@
-﻿using System.Reflection;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using CSScriptLib;
 using Microsoft.Extensions.Options;
+using ScriptScheduler.Core.Base;
 using ScriptScheduler.Core.PythonScript;
 
 namespace ScriptScheduler.Core.CsScript;
 
-public class CsScriptExecutor
+public class CsScriptExecutor : IScriptExecutor
 {
     private readonly Serilog.ILogger _logger;
     private readonly IOptionsMonitor<CsScriptOption> _optionsMonitor;
@@ -27,7 +33,7 @@ public class CsScriptExecutor
     
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var dirs = Directory.GetDirectories(_scriptOption.ScriptPath);
+        var dirs = Directory.GetDirectories(_scriptOption.ScriptPath).Where(m => m.Contains("cs-script"));
         await Parallel.ForEachAsync(dirs, new ParallelOptions
         {
             CancellationToken = cancellationToken,
@@ -35,7 +41,7 @@ public class CsScriptExecutor
             TaskScheduler = TaskScheduler.Default
         }, async (dir, token) =>
         {
-            var files = Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(dir, "*.csx", SearchOption.AllDirectories);
             foreach (var file in files)
             {
                 await ExecuteCoreAsync(file, cancellationToken);
@@ -54,12 +60,15 @@ public class CsScriptExecutor
 
         try
         {
-            ICsScriptRunner runner = CSScript.Evaluator
+            ICsScriptRunner<String, String> runner = CSScript.Evaluator
                 .ReferenceAssembliesFromCode(code)
                 .ReferenceAssembly(Assembly.GetExecutingAssembly())
-                //.ReferenceAssembly(Assembly.GetExecutingAssembly().Location)
+                .ReferenceAssembly(Assembly.GetExecutingAssembly().Location)
                 .ReferenceDomainAssemblies()
-                .LoadCode<ICsScriptRunner>(code);
+                .LoadCode<ICsScriptRunner<String, String>>(code);
+            await runner.OnProducerAsync();
+            await runner.OnConsumerAsync();
+            _logger.Information(runner.Result);
         }
         catch (Exception e)
         {

@@ -1,14 +1,17 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using CliWrap;
 using Microsoft.Extensions.Options;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonSetup
+public class PythonScriptSetup
 {
     private PythonScriptOption _scriptOption;
     private readonly Serilog.ILogger _logger;
-    public PythonSetup(Serilog.ILogger logger
+    public PythonScriptSetup(Serilog.ILogger logger
         , IOptionsMonitor<PythonScriptOption> options)
     {
         _logger = logger;

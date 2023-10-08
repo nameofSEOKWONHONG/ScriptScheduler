@@ -1,18 +1,25 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using CliWrap;
 using Microsoft.Extensions.Options;
+using ScriptScheduler.Core.Base;
 using ScriptScheduler.Domain.Enums;
 using ScriptScheduler.Domain.IO;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonExecutor
+public class PythonScriptExecutor : IScriptExecutor
 {
     private readonly Serilog.ILogger _logger;
     private readonly IOptionsMonitor<PythonScriptOption> _optionsMonitor;
     private PythonScriptOption _scriptOption;
     
-    public PythonExecutor(Serilog.ILogger logger
+    public PythonScriptExecutor(Serilog.ILogger logger
     , IOptionsMonitor<PythonScriptOption> optionsMonitor)
     {
         _logger = logger;
@@ -28,7 +35,7 @@ public class PythonExecutor
 
     public async Task ExecuteAsync(CancellationToken cancellationToken = new ())
     {
-        var dirs = Directory.GetDirectories(_scriptOption.ScriptPath);
+        var dirs = Directory.GetDirectories(_scriptOption.ScriptPath).Where(m => m.Contains("python-script"));
         await Parallel.ForEachAsync(dirs, new ParallelOptions
         {
             CancellationToken = cancellationToken,
@@ -95,9 +102,9 @@ public class PythonExecutor
         try
         {
             var fileInfo = ScriptFileHandler.Create().GetFileInfo(file);
-            var result = await _states[fileInfo.RepeatType](fileInfo, cancellationToken);
+            var result = await _states[fileInfo.RepeatType].Invoke(fileInfo, cancellationToken);
             _logger.Information("StdOut: {StdOut}", result.Item1);
-            _logger.Error("StdErr: {StdErr}", result.Item2);            
+            _logger.Information("StdErr: {StdErr}", result.Item2);            
         }
         catch (Exception e)
         {

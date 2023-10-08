@@ -1,4 +1,6 @@
-﻿namespace ScriptScheduler.Core.CsScript;
+﻿using System.Threading.Tasks;
+
+namespace ScriptScheduler.Core.CsScript;
 
 public abstract class CsScriptRunnerBase : ICsScriptRunner
 {

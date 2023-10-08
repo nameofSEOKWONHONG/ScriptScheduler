@@ -1,4 +1,6 @@
-﻿using ScriptScheduler.Domain.Enums;
+﻿using System;
+using System.IO;
+using ScriptScheduler.Domain.Enums;
 
 namespace ScriptScheduler.Domain.IO;
 
@@ -9,11 +11,12 @@ public class ScriptFileHandler
         //[REPEAT_TYPE].[execute time].[rolename].[extension(py)]
         // ex) C.0.http-get.py
         // ex) D.1200.http-get.py
-        var infos = script.Split(".");
+        var scriptFile = Path.GetFileName(script);
+        var infos = scriptFile.Split(".");
         ScriptFileInfo fileInfo = new ScriptFileInfo()
         {
             RepeatType = infos[0] == "D" ? ENUM_REPEAT_TYPE.DAILY : ENUM_REPEAT_TYPE.CONTINUE,
-            ExecuteTime = TimeSpan.Parse($"{infos[1].Substring(0, 2)}:{infos[1].Substring(2, 2)}"),
+            ExecuteTime = infos[0] == "D" ? TimeSpan.Parse($"{infos[1].Substring(0, 2)}:{infos[1].Substring(2, 2)}") : TimeSpan.Zero,
             RoleName = infos[2],
             Extension = infos[3],
             FullPath = script

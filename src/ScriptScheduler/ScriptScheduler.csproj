@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
         <UserSecretsId>dotnet-ScriptScheduler-BEFB4C13-0B06-4FE1-8857-8F26479FEBAF</UserSecretsId>
     </PropertyGroup>
 
@@ -30,5 +30,17 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\eXtensionSharp\src\eXtensionSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Script\cs-script\http-get.cs">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Script\python-script\CN.0.auto-login.py">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Script\cs-script\CN.0.http-get.csx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

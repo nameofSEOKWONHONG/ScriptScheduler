@@ -1,4 +1,6 @@
-﻿namespace ScriptScheduler.Core.PythonScript;
+﻿using System.Collections.Generic;
+
+namespace ScriptScheduler.Core.PythonScript;
 
 public class PythonScriptOption
 {

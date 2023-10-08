@@ -2,6 +2,9 @@
 //#define __LINUX__
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using ScriptScheduler.Core.CsScript;
 using ScriptScheduler.Core.PythonScript;
 using ScriptScheduler.Entity;
@@ -39,8 +42,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         #region [python]
 
         services.Configure<PythonScriptOption>(hostContext.Configuration.GetSection(nameof(PythonScriptOption)));
-        services.AddSingleton<PythonExecutor>();
-        services.AddSingleton<PythonSetup>();
+        services.AddSingleton<PythonScriptExecutor>();
+        services.AddSingleton<PythonScriptSetup>();
         services.AddHostedService<PythonScriptWorker>();        
 
         #endregion
