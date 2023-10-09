@@ -1,7 +1,8 @@
+using ScriptScheduler.Core.Base;
+
 namespace ScriptScheduler.Core.CsScript;
 
-public class CsScriptOption
+public class CsScriptOption : ScriptOptionBase
 {
-    public string ScriptPath { get; set; }
-    public int Interval { get; set; }
+    
 }

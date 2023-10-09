@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
+using ScriptScheduler.Core.Base;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonScriptOption
+public class PythonScriptOption : ScriptOptionBase
 {
-    public string ScriptPath { get; set; }
-    public int Interval { get; set; }
     public IList<string> PipList { get; set; }
 }

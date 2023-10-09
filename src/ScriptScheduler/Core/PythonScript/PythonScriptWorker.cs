@@ -9,41 +9,23 @@ using ScriptScheduler.Core.Base;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonScriptWorker : ScriptBaseBackgroundService
+public class PythonScriptWorker : ScriptBaseBackgroundService<PythonScriptOption>
 {
-    private readonly Serilog.ILogger _logger;
     private readonly PythonScriptSetup _pythonScriptSetup;
     private PythonScriptExecutor _pythonScriptExecutor;
-    private PythonScriptOption _scriptOption;
 
     public PythonScriptWorker(Serilog.ILogger logger
+    , IOptionsMonitor<PythonScriptOption> optionsMonitor
     , PythonScriptSetup pythonScriptSetup
-    , PythonScriptExecutor pythonScriptExecutor
-    , IOptionsMonitor<PythonScriptOption> _optionsMonitor)
+    , PythonScriptExecutor pythonScriptExecutor) 
+    : base(logger, optionsMonitor, pythonScriptSetup)
     {
-        _logger = logger;
         _pythonScriptSetup = pythonScriptSetup;
         _pythonScriptExecutor = pythonScriptExecutor;
-        _scriptOption = _optionsMonitor.CurrentValue;
-        _optionsMonitor.OnChange(OptionChange);
     }
 
-    private void OptionChange(PythonScriptOption obj)
+    protected override async Task ExecuteCoreAsync(CancellationToken stoppingToken)
     {
-        _scriptOption = obj;
+        await _pythonScriptExecutor.ExecuteAsync(stoppingToken);
     }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        await _pythonScriptSetup.InitializeAsync(stoppingToken);
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            this.ChangeFileDoneToIng(_scriptOption.ScriptPath, "python-script");
-            _logger.Information("Worker running at: {time}", DateTimeOffset.Now);
-            await _pythonScriptExecutor.ExecuteAsync(stoppingToken);
-            await Task.Delay(1000 * _scriptOption.Interval, stoppingToken);
-        }
-    }
-    
-
 }

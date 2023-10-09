@@ -4,21 +4,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
 using Microsoft.Extensions.Options;
+using ScriptScheduler.Core.Base;
 
 namespace ScriptScheduler.Core.PythonScript;
 
-public class PythonScriptSetup
+public class PythonScriptSetup : ScriptSetupBase<PythonScriptOption>
 {
-    private PythonScriptOption _scriptOption;
-    private readonly Serilog.ILogger _logger;
-    public PythonScriptSetup(Serilog.ILogger logger
-        , IOptionsMonitor<PythonScriptOption> options)
+    public PythonScriptSetup(Serilog.ILogger logger, IOptionsMonitor<PythonScriptOption> optionsMonitor)
+        : base(logger, optionsMonitor)
     {
-        _logger = logger;
-        _scriptOption = options.CurrentValue;
+        
     }
-
-    public async Task InitializeAsync(CancellationToken cancellationToken = new())
+    
+    public override async Task InitializeAsync(CancellationToken cancellationToken = new())
     {
         var result = await CliWrap.Cli.Wrap("python")
             .WithArguments(new[] { "--version" })
@@ -31,7 +29,7 @@ public class PythonScriptSetup
         
         var stdOutBuffer = new StringBuilder();
         var stdErrBuffer = new StringBuilder();
-        foreach (var item in _scriptOption.PipList)
+        foreach (var item in this.Option.PipList)
         {
             await CliWrap.Cli.Wrap("python")
                 .WithValidation(CommandResultValidation.None)
